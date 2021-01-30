@@ -20,8 +20,14 @@ imp_f(evid_A(a)) = evid_B(f(a))
 Inductive Prob (X : Type): Type :=
   | evid (x : X).
 
+(* Is this needed, or is the computation rule enough? *)
 Axiom elimination_rule :
   forall (A B : Type) (a : A) (f : A -> B),
-  (forall x : Prob A, (exists impf_x : Prob B, True)).
-
-
+  (forall x : Prob A, (exists impf : (Prob A) -> (Prob B), True)).
+  
+(* Should the forall a be before the impf part? *)
+Axiom computation_rule :
+  forall (A B : Type) (a : A) (f : A -> B),
+  exists (impf : (Prob A) -> (Prob B)), (impf (evid A a)) = (evid B (f a)).
+  
+  
