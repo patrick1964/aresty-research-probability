@@ -34,7 +34,6 @@ Qed.
 
 (* Using match with Prob is implicitly assuming that we used evid as the
    constructor - don't do that. *)
-Print imp_as_theorem.
 
 Print Prob_rect.
 Print Prob_ind.
@@ -51,14 +50,14 @@ Axiom elimination_rule :
 *)
 
 (* Equivalent to elimination rule *)
-Axiom imp :
+Axiom prob_imp :
   forall (A B : Type) (f : A -> B), (Prob A) -> (Prob B).
 
-Check imp nat bool (fun (n: nat) => true) (evid nat 1).
+Check prob_imp nat bool (fun (n: nat) => true) (evid nat 1).
 
-Axiom computation_rule :
+Axiom prob_comp :
   forall (A B : Type) (f : A -> B) (a: A),
-  imp A B f (evid A a) = evid B (f a).
+  prob_imp A B f (evid A a) = evid B (f a).
 
 (* Old computation rule
 (* Should the forall a be before the impf part? *)
