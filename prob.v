@@ -52,6 +52,11 @@ Axiom elimination_rule :
 (* Equivalent to elimination rule *)
 Axiom prob_imp :
   forall (A B : Type) (f : A -> B), (Prob A) -> (Prob B).
+  
+Axiom prob_imp_dependent_types :
+  forall (A : Type) (B : (Prob A) -> Type)
+  (f: forall a : A, Prob (B (evid A a))),
+  forall x : Prob A, Prob (B x).
 
 Check prob_imp nat bool (fun (n: nat) => true) (evid nat 1).
 
