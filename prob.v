@@ -52,11 +52,22 @@ Axiom elimination_rule :
 (* Equivalent to elimination rule *)
 Axiom prob_imp :
   forall (A B : Type) (f : A -> B), (Prob A) -> (Prob B).
-  
+
 Axiom prob_imp_dependent_types :
   forall (A : Type) (B : (Prob A) -> Type)
   (f: forall a : A, Prob (B (evid A a))),
   forall x : Prob A, Prob (B x).
+
+Check prob_imp nat bool (fun (n : nat) => true).
+
+Check (fun (n: nat) => 2) 5.
+
+Check bool : Type.
+
+Check (fun (p : Prob nat) => bool : Type).
+
+Check prob_imp_dependent_types nat (fun (p : Prob nat) => bool)
+      (fun (n : nat) => evid bool true).  
 
 Check prob_imp nat bool (fun (n: nat) => true) (evid nat 1).
 
@@ -64,11 +75,23 @@ Axiom prob_comp :
   forall (A B : Type) (f : A -> B) (a: A),
   prob_imp A B f (evid A a) = evid B (f a).
 
-(* Old computation rule
-(* Should the forall a be before the impf part? *)
-Axiom computation_rule :
-  forall (A B : Type) (a : A) (f : A -> B),
-  exists (impf : (Prob A) -> (Prob B)), (impf (evid A a)) = (evid B (f a)).
+Axiom prob_comp_dependent_types :
+  forall (A : Type) (a : A) (B : (Prob A) -> Type)
+  (f: forall a : A, Prob (B (evid A a))) (x : Prob A),
+  prob_imp_dependent_types A B f = Prob (B x).
+
+(* Goal: When B is a non-dependent type,
+the two elimination rules are the same.
 *)
+Theorem prob_imp_equivalence : 
+  forall (A B : Type) (a : A) (f : A -> B),
+  (prob_imp A B f) (evid A a) =
+  prob_imp_dependent_types A (fun (_ : Prob A) => B)
+  (fun (a : A) => evid B (f a)) (evid A a).
+Proof.
+  intros A B a f.
+  rewrite prob_comp.
+  simpl.
+ 
   
   
