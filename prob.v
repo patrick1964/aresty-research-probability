@@ -71,14 +71,16 @@ Check prob_imp_dependent_types nat (fun (p : Prob nat) => bool)
 
 Check prob_imp nat bool (fun (n: nat) => true) (evid nat 1).
 
+Check forall x : Prob nat, Prob (bool).
+
 Axiom prob_comp :
   forall (A B : Type) (f : A -> B) (a: A),
   prob_imp A B f (evid A a) = evid B (f a).
 
 Axiom prob_comp_dependent_types :
   forall (A : Type) (a : A) (B : (Prob A) -> Type)
-  (f: forall a : A, Prob (B (evid A a))) (x : Prob A),
-  prob_imp_dependent_types A B f = Prob (B x).
+  (f: forall a : A, Prob (B (evid A a))) (x : Prob A) (b : B x),
+  prob_imp_dependent_types A B f x = evid (B x) b.
 
 (* Goal: When B is a non-dependent type,
 the two elimination rules are the same.
@@ -91,7 +93,10 @@ Theorem prob_imp_equivalence :
 Proof.
   intros A B a f.
   rewrite prob_comp.
-  simpl.
+  rewrite prob_comp_dependent_types with (b:=f a).
+    - reflexivity.
+    - apply a.
+Qed.
  
   
   
