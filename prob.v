@@ -97,6 +97,14 @@ Proof.
     - reflexivity.
     - apply a.
 Qed.
- 
-  
-  
+
+Inductive ProbLevel (X : Type) (level : nat) : Type :=
+  | absolute_evid (x : X)
+  | prob_evid (p : ProbLevel X (level + 1)).
+
+(* Create a ProbLevel with absolute evidence *)
+Check absolute_evid nat 2 1.
+
+(* Create a ProbLevel using probabilistic evidence from 1 level higher *)
+Check prob_evid nat 1 (absolute_evid nat 2 1).
+
