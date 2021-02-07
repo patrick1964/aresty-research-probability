@@ -98,6 +98,9 @@ Proof.
     - apply a.
 Qed.
 
+(*
+Does this violate injectivity?
+*)
 Inductive ProbLevel (X : Type) (level : nat) : Type :=
   | absolute_evid (x : X)
   | prob_evid (p : ProbLevel X (level + 1)).
@@ -106,5 +109,27 @@ Inductive ProbLevel (X : Type) (level : nat) : Type :=
 Check absolute_evid nat 2 1.
 
 (* Create a ProbLevel using probabilistic evidence from 1 level higher *)
-Check prob_evid nat 1 (absolute_evid nat 2 1).
+Check prob_evid nat 2 (absolute_evid nat 3 1).
+
+Axiom prob_level_imp :
+  forall (A B : Type) (f : A -> B) (n : nat),
+  (ProbLevel A n) -> (ProbLevel B n).
+
+(*
+Going from A to ProbLevel A to ProbLevel n B is the same as
+going from A to B to ProbLevel n B.
+*)
+Axiom prob_level_comp_from_absolute :
+  forall (A B : Type) (f : A -> B) (a: A) (n : nat),
+  prob_level_imp A B f n (absolute_evid A n a)
+  = absolute_evid B n (f a).
+
+(*
+Going from Prob A (n + 1) to Prob A n to Prob B n is the same as
+going from Prob A (n + 1) to Prob B (n + 1) to Prob B n.
+*)
+Axiom prob_level_comp_from_level :
+  forall (A B : Type) (f : A -> B) (n : nat) (p: ProbLevel A (n + 1)),
+  prob_level_imp A B f n (prob_evid A n p)
+  = prob_evid B n (prob_level_imp A B f (n + 1) p).
 
