@@ -55,47 +55,38 @@ Axiom prob_imp :
 
 Axiom prob_imp_dependent_types :
   forall (A : Type) (B : (Prob A) -> Type)
-  (f: forall a : A, Prob (B (evid A a))),
+  (f: forall a : A, B (evid A a)),
   forall x : Prob A, Prob (B x).
-
-Check prob_imp nat bool (fun (n : nat) => true).
-
-Check (fun (n: nat) => 2) 5.
-
-Check bool : Type.
-
-Check (fun (p : Prob nat) => bool : Type).
-
-Check prob_imp_dependent_types nat (fun (p : Prob nat) => bool)
-      (fun (n : nat) => evid bool true).  
-
-Check prob_imp nat bool (fun (n: nat) => true) (evid nat 1).
-
-Check forall x : Prob nat, Prob (bool).
 
 Axiom prob_comp :
   forall (A B : Type) (f : A -> B) (a: A),
   prob_imp A B f (evid A a) = evid B (f a).
 
 Axiom prob_comp_dependent_types :
-  forall (A : Type) (a : A) (B : (Prob A) -> Type)
-  (f: forall a : A, Prob (B (evid A a))) (x : Prob A) (b : B x),
-  prob_imp_dependent_types A B f x = evid (B x) b.
+  forall (A : Type) (B : (Prob A) -> Type)
+  (f: forall a : A, B (evid A a))
+  (a : A),
+  prob_imp_dependent_types A B f (evid A a) = evid (B (evid A a)) (f a).
+
+Axiom prob_function_extensionality :
+  forall (A : Type) (B : Type) (f1 : Prob A -> B) (f2 : Prob A -> B),
+  (forall (a : A), (f1 (evid A a)) = (f2 (evid A a))) -> f1 = f2.
 
 (* Goal: When B is a non-dependent type,
 the two elimination rules are the same.
 *)
 Theorem prob_imp_equivalence : 
-  forall (A B : Type) (a : A) (f : A -> B),
-  (prob_imp A B f) (evid A a) =
+  forall (A B : Type) (f : A -> B),
+  prob_imp A B f =
   prob_imp_dependent_types A (fun (_ : Prob A) => B)
-  (fun (a : A) => evid B (f a)) (evid A a).
+  (fun (a : A) => (f a)).
 Proof.
-  intros A B a f.
+  intros A B f.
+  apply prob_function_extensionality.
+  intros a.
+  rewrite prob_comp_dependent_types.
   rewrite prob_comp.
-  rewrite prob_comp_dependent_types with (b:=f a).
-    - reflexivity.
-    - apply a.
+  reflexivity.
 Qed.
 
 (*
@@ -111,25 +102,33 @@ Check absolute_evid nat 2 1.
 (* Create a ProbLevel using probabilistic evidence from 1 level higher *)
 Check prob_evid nat 2 (absolute_evid nat 3 1).
 
-Axiom prob_level_imp :
+(* Two Elimination Rules *)
+Axiom prob_level_imp_same_level :
   forall (A B : Type) (f : A -> B) (n : nat),
   (ProbLevel A n) -> (ProbLevel B n).
+  
 
-(*
-Going from A to ProbLevel A to ProbLevel n B is the same as
-going from A to B to ProbLevel n B.
-*)
+Axiom prob_level_imp_different_levels :
+  forall (A B : Type) (m n : nat),
+  ((ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))) ->
+  ((ProbLevel A m) -> (ProbLevel B n)).
+
+(* Two Computation Rules *)
 Axiom prob_level_comp_from_absolute :
-  forall (A B : Type) (f : A -> B) (a: A) (n : nat),
-  prob_level_imp A B f n (absolute_evid A n a)
+  forall (A B : Type) (f : A -> B) (n : nat)
+  (a: A),
+  prob_level_imp_same_level A B f n (absolute_evid A n a)
   = absolute_evid B n (f a).
 
-(*
-Going from Prob A (n + 1) to Prob A n to Prob B n is the same as
-going from Prob A (n + 1) to Prob B (n + 1) to Prob B n.
-*)
 Axiom prob_level_comp_from_level :
-  forall (A B : Type) (f : A -> B) (n : nat) (p: ProbLevel A (n + 1)),
-  prob_level_imp A B f n (prob_evid A n p)
-  = prob_evid B n (prob_level_imp A B f (n + 1) p).
+  forall (A B : Type) (m n : nat) (p: ProbLevel A (m + 1))
+  (f2 : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))),
+  prob_level_imp_different_levels A B m n f2 (prob_evid A m p)
+  = prob_evid B n (f2 p).
+  
+(* TODO
+- dependent types version of ProbLevel rules
+- generalize function extensionality for ProbLevels?
+- induction rules for Prob and ProbLevel
+*)
 
