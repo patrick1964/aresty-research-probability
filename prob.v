@@ -102,16 +102,32 @@ Check absolute_evid nat 2 1.
 (* Create a ProbLevel using probabilistic evidence from 1 level higher *)
 Check prob_evid nat 2 (absolute_evid nat 3 1).
 
+(*
+Axiom prob_imp_dependent_types :
+  forall (A : Type) (B : (Prob A) -> Type)
+  (f: forall a : A, B (evid A a)),
+  forall x : Prob A, Prob (B x).
+*)
+
 (* Two Elimination Rules *)
 Axiom prob_level_imp_same_level :
   forall (A B : Type) (f : A -> B) (n : nat),
   (ProbLevel A n) -> (ProbLevel B n).
   
-
 Axiom prob_level_imp_different_levels :
   forall (A B : Type) (m n : nat),
   ((ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))) ->
   ((ProbLevel A m) -> (ProbLevel B n)).
+
+Axiom prob_level_imp_same_level_dependent_types :
+  forall (n : nat) (A : Type) (B: (ProbLevel A n) -> Type)
+  (f : forall (a : A), B (absolute_evid A n a)),
+  forall (p : ProbLevel A n), (ProbLevel (B p) n).
+
+Axiom prob_level_imp_different_levels_dependent_types :
+  forall (m n : nat) (A : Type) (B: (ProbLevel A m) -> Type)
+  (f : forall (p : ProbLevel A (m + 1)), ProbLevel (B (prob_evid A m p)) (n + 1)),
+  forall (p : ProbLevel A m), ProbLevel (B p) n.
 
 (* Two Computation Rules *)
 Axiom prob_level_comp_from_absolute :
@@ -122,13 +138,40 @@ Axiom prob_level_comp_from_absolute :
 
 Axiom prob_level_comp_from_level :
   forall (A B : Type) (m n : nat) (p: ProbLevel A (m + 1))
-  (f2 : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))),
-  prob_level_imp_different_levels A B m n f2 (prob_evid A m p)
-  = prob_evid B n (f2 p).
-  
-(* TODO
-- dependent types version of ProbLevel rules
-- generalize function extensionality for ProbLevels?
-- induction rules for Prob and ProbLevel
-*)
+  (f : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))),
+  prob_level_imp_different_levels A B m n f (prob_evid A m p)
+  = prob_evid B n (f p).
+
+Axiom prob_level_comp_from_absolute_dependent_types :
+  forall (n : nat) (A : Type) (a : A) (B: (ProbLevel A n) -> Type)
+  (f : forall (a : A), B (absolute_evid A n a)),
+  prob_level_imp_same_level_dependent_types n A B f (absolute_evid A n a)
+  = absolute_evid (B (absolute_evid A n a)) n (f a).
+
+(* TODO not completely sure about this one -- we had to experiment with 
+   using prob_evid in different places to get the right input for B. *)
+Axiom prob_level_comp_from_level_dependent_types :
+  forall (m n : nat) (A : Type) (B: (ProbLevel A m) -> Type)
+  (p : ProbLevel A (m + 1))
+  (f : forall (p2 : ProbLevel A (m + 1)), ProbLevel (B (prob_evid A m p2)) (n + 1)),
+  prob_level_imp_different_levels_dependent_types m n A B f (prob_evid A m p)
+  = prob_evid (B (prob_evid A m p)) n (f p).
+
+(* TODO do we need both parts of the /\? *)
+Axiom prob_level_function_extensionality :
+  forall (A : Type) (B : Type) (n : nat) (f1 : ProbLevel A n -> B)
+    (f2 : ProbLevel A n -> B),
+  ((forall (a : A), (f1 (absolute_evid A n a)) = (f2 (absolute_evid A n a)))
+  /\
+  (forall (p : ProbLevel A (n + 1)), (f1 (prob_evid A n p)) = (f2 (prob_evid A n p))))
+  -> f1 = f2.
+
+Axiom prob_level_induction :
+  forall (A : Type),
+  (forall (n : nat), (ProbLevel A n)) -> A.
+
+Axiom prob_level_induction_computation_rule :
+  forall (A : Type) (m : nat)
+  (f : forall (n : nat), ProbLevel A n),
+  absolute_evid A m (prob_level_induction A f) = f m.
 
