@@ -60,6 +60,13 @@ Axiom prob_imp :
   (f: forall a : A, B (evid A a)),
   forall x : Prob A, Prob (B x).
 
+Theorem prob_imp_independent :
+  forall (A B : Type) (f : A -> B), (Prob A) -> (Prob B).
+Proof.
+  intros A B f.
+  apply (prob_imp A (fun (_ : Prob A) => B) f).
+Qed.
+
 (*
 Axiom prob_comp :
   forall (A B : Type) (f : A -> B) (a: A),
@@ -71,6 +78,20 @@ Axiom prob_comp :
   (f: forall a : A, B (evid A a))
   (a : A),
   prob_imp A B f (evid A a) = evid (B (evid A a)) (f a).
+
+(*
+TODO
+Theorem prob_comp_independent :
+  forall (A B : Type) (f : A -> B) (a: A),
+  prob_imp_independent A B f (evid A a) = evid B (f a).
+Proof.
+  intros A B f a.
+  unfold prob_imp_independent.
+  rewrite <- (prob_comp A (fun (_ : Prob A) => B) f a).
+  apply prob_imp.
+  rewrite <- prob_imp_independent.
+*)
+  
 
 (* TODO think about whether this is necessary? *)
 Axiom prob_function_extensionality :
@@ -188,10 +209,22 @@ Theorem placeholder :
   (forall (n : nat), ProbLevel A n) = A.
 Proof.
   Abort.
+  
+Theorem split_prob :
+  forall (A B :Type), Prob (A * B) -> ((Prob A) * (Prob B)).
+Proof.
+  intros A B H.
+  Abort.
+
+Theorem comb_prob :
+  forall (A B : Type), ((Prob A) + (Prob B)) -> Prob (A + B).
+Proof.
+  intros A B H.
+  destruct H.
+    - Abort.
 
 (*
 TODO (more specific things)
-  - clean everything up (change names if any are unclear)
   - try to finish the placeholder theorem (if possible)
   - make independent types theorem in terms of dependent types
   - a few other theorems I wrote down
