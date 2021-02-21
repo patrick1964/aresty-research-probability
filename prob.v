@@ -162,6 +162,7 @@ Axiom continuum_hypothesis :
   forall (A : Type),
   (forall (a : A), prob_level_ind A (fun (n : nat) => absolute_evid A n a) = a).
 
+(* TODO *)
 Theorem placeholder :
   forall (A : Type),
   (forall (n : nat), ProbLevel A n) = A.
@@ -184,7 +185,28 @@ Proof.
 Theorem prob_pair_to_union :
   forall (A B : Type), ((Prob A) * (Prob B)) -> ((Prob A) + (Prob B)).
 Proof.
+  intros.
+  destruct X as [pA pB].
+  left.
+  apply pA.
+Qed.
+
+Theorem split_prob_general :
+  forall (A : Type) (B : A -> Type),
+  Prob (forall (a : A), B a) -> forall (a : A), Prob (B a).
+Proof.
+  intros.
   Abort.
+
+(* TODO exists requires its argument to be a Prop, not just any Type. *)
+Theorem comb_prob_general :
+  forall (A : Type) (B : A -> Type),
+  (exists (a : A) (b : Prob (B a)), True) -> (Prob (exists (a : A) (b : (B a)), True)).
+Proof.
+  intros.
+  exists.
+  Abort.
+
 
 (*
 TODO (more specific things)
