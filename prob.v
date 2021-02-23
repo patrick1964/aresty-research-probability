@@ -53,22 +53,11 @@ Axiom prob_comp :
   (a : A),
   prob_imp A B f (evid A a) = evid (B (evid A a)) (f a).
 
-(* TODO think about whether this is necessary? *)
-Axiom prob_function_extensionality :
-  forall (A : Type) (B : Type) (f1 : Prob A -> B) (f2 : Prob A -> B),
-  (forall (a : A), (f1 (evid A a)) = (f2 (evid A a))) -> f1 = f2.
-
 Definition prob_imp_independent (A B : Type) (f : A -> B)
   := prob_imp A (fun (_ : Prob A) => B) f.
 
-Theorem prob_comp_independent :
-  forall (A B : Type) (f : A -> B) (a: A),
-  prob_imp_independent A B f (evid A a) = evid B (f a).
-Proof.
-  intros A B f a.
-  rewrite <- (prob_comp A (fun (_ : Prob A) => B) f a).
-  reflexivity.
-Qed. 
+Definition prob_comp_indpendent (A B : Type) (f : A -> B) (a : A)
+  := prob_comp A (fun (_ : Prob A) => B) f a.
 
 Inductive ProbLevel (X : Type) (level : nat) : Type :=
   | absolute_evid (x : X)
@@ -110,34 +99,12 @@ Definition prob_level_evid_imp_independent (A B : Type) (m n : nat)
   (f : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1)))
   := prob_level_evid_imp m n A (fun (_ : ProbLevel A m) => B) f.
 
-Definition prob_level_abs_comp_indepenent (A B : Type) (f : A -> B) (n : nat) (a : A)
+Definition prob_level_abs_comp_independent (A B : Type) (f : A -> B) (n : nat) (a : A)
   := prob_level_abs_comp n A (fun (_ : ProbLevel A n) => B) f.
-
-Theorem prob_level_abs_comp_independent_thm :
-  forall (A B : Type) (f : A -> B) (n : nat)
-  (a: A),
-  prob_level_abs_imp_independent A B f n (absolute_evid A n a)
-  = absolute_evid B n (f a).
-Proof.
-  intros.
-  rewrite <- (prob_level_abs_comp n A (fun (_ : ProbLevel A n) => B) f).
-  reflexivity.
-Qed.
 
 Definition prob_level_evid_comp_independent (A B : Type) (m n : nat)
   (p : ProbLevel A (m + 1)) (f : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1)))
   := prob_level_evid_comp m n A (fun (_ : ProbLevel A m) => B) f.
-
-Theorem prob_level_evid_comp_independent_thm :
-  forall (A B : Type) (m n : nat) (p: ProbLevel A (m + 1))
-  (f : (ProbLevel A (m + 1)) -> (ProbLevel B (n + 1))),
-  prob_level_evid_imp_independent A B m n f (prob_evid A m p)
-  = prob_evid B n (f p).
-Proof.
-  intros.
-  rewrite <- (prob_level_evid_comp m n A (fun (_ : ProbLevel A m) => B) f).
-  reflexivity.
-Qed.
 
 (* TODO do we need both parts of the /\? *)
 (*
@@ -169,18 +136,52 @@ Theorem placeholder :
 Proof.
   Abort.
   
+Check prob_imp.
+
+(* TODO move to separate file *)
+Theorem proj_left : forall (A B : Type), A * B -> A.
+Proof.
+  intros A B H.
+  destruct H.
+  apply a.
+Qed.
+
+Theorem proj_right : forall (A B : Type), A * B -> B.
+Proof.
+  intros A B H.
+  destruct H.
+  apply b.
+Qed.
+
+Theorem inj_left : forall (A B : Type), A -> A + B.
+Proof.
+  intros A B H.
+  left. apply H.
+Qed.
+
+Theorem inj_right : forall (A B : Type), B -> A + B.
+Proof.
+  intros A B H.
+  right. apply H.
+Qed.
+
 Theorem split_prob :
   forall (A B :Type), Prob (A * B) -> ((Prob A) * (Prob B)).
 Proof.
   intros A B H.
-  Abort.
+  split.
+    - apply (prob_imp_independent (A * B) A (proj_left A B)). apply H.
+    - apply (prob_imp_independent (A * B) B (proj_right A B)). apply H. 
+Qed.
 
 Theorem comb_prob :
   forall (A B : Type), ((Prob A) + (Prob B)) -> Prob (A + B).
 Proof.
   intros A B H.
   destruct H.
-    - Abort.
+    - apply (prob_imp_independent A (A + B) (inj_left A B)). apply p. 
+    - apply (prob_imp_independent B (A + B) (inj_right A B)). apply p.
+Qed. 
 
 Theorem prob_pair_to_union :
   forall (A B : Type), ((Prob A) * (Prob B)) -> ((Prob A) + (Prob B)).
@@ -195,10 +196,27 @@ Theorem split_prob_general :
   forall (A : Type) (B : A -> Type),
   Prob (forall (a : A), B a) -> forall (a : A), Prob (B a).
 Proof.
-  intros.
-  Abort.
+  intros A B H a.
+  - assert (H2: (forall (a' : A), B a') -> (B a)).
+    * intros f. apply (f a).
+    * apply (prob_imp_independent (forall a : A, B a) (B a) H2).
+      apply H.
+Qed.
 
+Inductive Sigma (A : Type) (B : A -> Type) :=
+  | element (a : A) (b : (B a)).
+
+(*
 (* TODO exists requires its argument to be a Prop, not just any Type. *)
+Theorem comb_prob_general :
+  forall (A : Type) (B : A -> Type),
+  (Sigma (a : A) (Prob (B a)). -> (Prob (exists (a : A) (b : (B a)), True))
+Proof.
+  intros.
+  exists.
+  Abort.
+*)
+
 Theorem comb_prob_general :
   forall (A : Type) (B : A -> Type),
   (exists (a : A) (b : Prob (B a)), True) -> (Prob (exists (a : A) (b : (B a)), True)).
@@ -210,8 +228,15 @@ Proof.
 
 (*
 TODO (more specific things)
-  - try to finish the placeholder theorem (if possible)
-  - a few other theorems I wrote down
+  - split things into different files
+    - some functions, like proj_left, should go into a file of utility functions
+    - axioms of the system should go into axioms file
+    - theorems have their own file (can be split up further later on
+    - research Sigma and Pi types
+    - try to prove split_prob_general
+    - convert theorems at the bottom into levelled versions
+  - abstract
+  - 
 *)
 
 (*
