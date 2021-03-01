@@ -1,3 +1,4 @@
+Require Import Coq.Init.Specif.
 From research Require Import Utils.
 From research Require Import ProbAxioms.
 
@@ -40,6 +41,32 @@ Proof.
 Qed.
 
 (*
+#[universes(template)]
+Inductive sigT (A:Type) (P:A -> Type) : Type :=
+    existT : forall x:A, P x -> sigT P.
+*)
+
+Check sigT.
+Check existT.
+
+Check sigT (fun (n : nat) => bool).
+Check existT (fun (n : nat) => bool) 2.
+
+
+
+Theorem comb_prob_general :
+  forall (A : Type) (B : A -> Type),
+  sigT (fun (a : A) => Prob (B a)) -> Prob (sigT B).
+Proof.
+  intros A B H.
+  apply prob_imp_independent with 
+    - intros H1.
+  apply split_prob.
+  apply prob_imp_independent.
+  Check H.
+  
+
+(*
 (* TODO exists requires its argument to be a Prop, not just any Type. *)
 Theorem comb_prob_general :
   forall (A : Type) (B : A -> Type),
@@ -57,3 +84,12 @@ Proof.
   intros.
   exists.
   Abort.
+  
+  
+  
+  
+  
+  
+  
+  
+  

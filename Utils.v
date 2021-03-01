@@ -29,15 +29,9 @@ Inductive Sigma (A : Type) (B : A -> Type) :=
 
 (*
 TODO (more specific things)
-  - split things into different files
-    - some functions, like proj_left, should go into a file of utility functions
-    - axioms of the system should go into axioms file
-    - theorems have their own file (can be split up further later on
     - research Sigma and Pi types (use sig_t in the documentation page
     - try to prove split_prob_general
     - convert theorems at the bottom into levelled versions
-  - abstract
-  - 
 *)
 
 (*
