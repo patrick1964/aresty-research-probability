@@ -52,12 +52,12 @@ Proof.
 Qed.
 
 Theorem comb_prob_level_general :
-  forall (A : Type) (B : A -> Type),
-  sigT (fun (a : A) => Prob (B a)) -> Prob (sigT B).
+  forall (A : Type) (B : A -> Type) (n : nat),
+  sigT (fun (a : A) => ProbLevel (B a) n) -> ProbLevel (sigT B) n.
 Proof.
-  intros A B H.
-  apply prob_imp_independent with 
-    - intros H1.
-  apply split_prob.
-  apply prob_imp_independent.
-  Check H.
+  intros A B n H.
+  destruct H.
+  assert (H2: (B x) -> sigT B).
+    - intros b. apply existT in b. apply b.
+    - apply (prob_level_abs_imp_independent (B x) (sigT B) H2). apply p.
+Qed.

@@ -46,25 +46,27 @@ Inductive sigT (A:Type) (P:A -> Type) : Type :=
     existT : forall x:A, P x -> sigT P.
 *)
 
+Print sigT.
+
+Inductive sigT {A : Type} (P : A -> Type) : Type :=
+  existT : forall x : A, (P x -> sigT P).
+
 Check sigT.
 Check existT.
 
 Check sigT (fun (n : nat) => bool).
 Check existT (fun (n : nat) => bool) 2.
 
-
-
 Theorem comb_prob_general :
   forall (A : Type) (B : A -> Type),
   sigT (fun (a : A) => Prob (B a)) -> Prob (sigT B).
 Proof.
   intros A B H.
-  apply prob_imp_independent with 
-    - intros H1.
-  apply split_prob.
-  apply prob_imp_independent.
-  Check H.
-  
+  destruct H.
+  assert (H2: (B x) -> sigT B).
+    - intros b. apply existT in b. apply b.
+    - apply (prob_imp_independent (B x) (sigT B) H2). apply p.
+Qed.
 
 (*
 (* TODO exists requires its argument to be a Prop, not just any Type. *)
