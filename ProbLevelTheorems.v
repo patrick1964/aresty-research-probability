@@ -61,3 +61,16 @@ Proof.
     - intros b. apply existT in b. apply b.
     - apply (prob_level_abs_imp_independent (B x) (sigT B) H2). apply p.
 Qed.
+
+Inductive IndepLevelled (A B : Type) : Type :=
+  | indep : forall (m : nat),
+    (ProbLevel (A * B) m = prod (ProbLevel A m) (ProbLevel B m)) -> IndepLevelled A B.
+  
+  
+  
+  
+  
+  
+  
+  
+  
