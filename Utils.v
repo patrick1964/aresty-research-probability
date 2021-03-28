@@ -27,6 +27,16 @@ Qed.
 Inductive Sigma (A : Type) (B : A -> Type) :=
   | element (a : A) (b : (B a)).
 
+Check nat = bool.
+
+Axiom type_equivalence:
+  forall (A B : Type),
+  (exists (f: A -> B),
+    (exists (g: B -> A), forall (b : B), (f (g b)) = b) /\
+    (exists (h: B -> A), forall (a : A), (h (f a)) = a))
+  -> A = B.
+
+
 (*
 TODO (more specific things)
     - research Sigma and Pi types (use sig_t in the documentation page

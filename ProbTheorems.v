@@ -79,16 +79,13 @@ Proof.
   Abort.
 *)
 
-Theorem comb_prob_general :
-  forall (A : Type) (B : A -> Type),
-  (exists (a : A) (b : Prob (B a)), True) -> (Prob (exists (a : A) (b : (B a)), True)).
-Proof.
-  intros.
-  exists.
-  Abort.
+Inductive Indep (A B : Type) : Type :=
+  | indep : (Prob (A * B) = prod (Prob A) (Prob B)) -> Indep A B.
   
-  
-  
+Inductive Cond (A B : Type) (a : Prob A) : Type :=
+  | cond : (exists (p : Prob (A * B)), fst (split_prob A B p) = a) -> Cond A B a.
+
+
   
   
   
