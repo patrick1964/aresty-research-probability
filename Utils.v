@@ -1,3 +1,5 @@
+Require Import Coq.Init.Specif.
+
 Theorem proj_left : forall (A B : Type), A * B -> A.
 Proof.
   intros A B H.
@@ -29,13 +31,36 @@ Inductive Sigma (A : Type) (B : A -> Type) :=
 
 Check nat = bool.
 
-Axiom type_equivalence:
-  forall (A B : Type),
-  (exists (f: A -> B),
-    (exists (g: B -> A), forall (b : B), (f (g b)) = b) /\
-    (exists (h: B -> A), forall (a : A), (h (f a)) = a))
-  -> A = B.
+Check existT.
 
+Check sigT.
+
+Definition homotopy (A : Type) (P : A -> Type) (f g: forall (a : A), P a): Type
+  := forall (a : A), (f a) = (g a).
+
+Definition homotopy_ind (A B : Type) (f g: A -> B): Type
+  := homotopy A (fun (a : A) => B) f g.
+  
+Definition id (A : Type) (a : A) := a.
+
+Check id.
+
+Check forall (a : nat), (fun (a: nat) => bool) a.
+Check forall (a : nat), (fun (a: nat) => bool) a.
+
+Definition Pi (A : Type) (P : A -> Type) : Type := forall (a : A), P a.
+
+Check Pi.
+
+Check existT.
+
+(* TODO use existT f such that isequiv f *)
+Definition type_equiv (A B : Type) : Type :=
+  sigT (fun (f : A -> B) => (
+    prod
+    (sigT (fun (g : B -> A) => (homotopy_ind B B (fun (b : B) => (f (g b))) (id B))))
+    (sigT (fun (h : B -> A) => (homotopy_ind A A (fun (a : A) => (h (f a))) (id A))))
+  )).
 
 (*
 TODO (more specific things)

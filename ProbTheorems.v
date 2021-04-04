@@ -48,9 +48,6 @@ Inductive sigT (A:Type) (P:A -> Type) : Type :=
 
 Print sigT.
 
-Inductive sigT {A : Type} (P : A -> Type) : Type :=
-  existT : forall x : A, (P x -> sigT P).
-
 Check sigT.
 Check existT.
 
