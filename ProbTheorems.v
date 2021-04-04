@@ -1,4 +1,5 @@
 Require Import Coq.Init.Specif.
+Require Import Setoid.
 From research Require Import Utils.
 From research Require Import ProbAxioms.
 
@@ -76,11 +77,24 @@ Proof.
   Abort.
 *)
 
-Inductive Indep (A B : Type) : Type :=
-  | indep : (Prob (A * B) = prod (Prob A) (Prob B)) -> Indep A B.
+Definition indep (A B : Type) : Type :=
+  (Prob (A * B) = prod (Prob A) (Prob B)).
   
-Inductive Cond (A B : Type) (a : Prob A) : Type :=
-  | cond : (exists (p : Prob (A * B)), fst (split_prob A B p) = a) -> Cond A B a.
+Definition cond (A B : Type) (a : Prob A) : Type :=
+  sigT (fun (p : Prob (A * B)) => (fst (split_prob A B p) = a)).
+
+Theorem pair_cond_equivalence :
+  forall (A B : Type),
+    type_equiv (Prob (A * B)) (sigT (fun (a : Prob A) => cond A B a)).
+Proof.
+  intros.
+  unfold type_equiv.
+  existT (fun (p : Prob (A * B)) => (
+    existT (fun (pA : (Prob A) => pA))
+  ).
+  exists (f : Prob (A * B) ->
+  {a : Prob A & {p : Prob (A * B) & fst (split_prob A B p) = a}}).
+  exists (fun (p : Prob (A * B)) => (fst (split_prob A B p))).
 
 
   
