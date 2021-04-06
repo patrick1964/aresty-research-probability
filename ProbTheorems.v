@@ -78,11 +78,26 @@ Proof.
 *)
 
 Definition indep (A B : Type) : Type :=
-  (Prob (A * B) = prod (Prob A) (Prob B)).
+  type_equiv (Prob (A * B)) (prod (Prob A) (Prob B)).
   
 Definition cond (A B : Type) (a : Prob A) : Type :=
   sigT (fun (p : Prob (A * B)) => (fst (split_prob A B p) = a)).
+  
+(* Why does Prob (A * B) -> sum a * Prob (B | a)
+Prob (B | a) = exists an x : Prob (A * B) constructed with a
 
+x : Prob(A * B) -> a : Prob A (split prob, left projection)
+To get cond, we need an x, but we already have it
+
+Prove that the projection of x to Prob A = a : Prob A
+
+Now we need a second function
+
+Once we have f and g, h should be equal to one of them
+Then we need to prove that the two functions satisfy the equivalence
+*)
+
+(* P(A * B) = sum (a * P(B | a) *)
 Theorem pair_cond_equivalence :
   forall (A B : Type),
     type_equiv (Prob (A * B)) (sigT (fun (a : Prob A) => cond A B a)).
@@ -95,6 +110,9 @@ Proof.
   exists (f : Prob (A * B) ->
   {a : Prob A & {p : Prob (A * B) & fst (split_prob A B p) = a}}).
   exists (fun (p : Prob (A * B)) => (fst (split_prob A B p))).
+  
+Definition f (A B : Type) (Prob A * B) : Type :=
+  
 
 
   
