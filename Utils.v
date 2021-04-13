@@ -58,8 +58,8 @@ Check existT.
 Definition type_equiv (A B : Type) : Type :=
   sigT (fun (f : A -> B) => (
     prod
-    (sigT (fun (g : B -> A) => (homotopy_ind B B (fun (b : B) => (f (g b))) (id B))))
     (sigT (fun (h : B -> A) => (homotopy_ind A A (fun (a : A) => (h (f a))) (id A))))
+    (sigT (fun (g : B -> A) => (homotopy_ind B B (fun (b : B) => (f (g b))) (id B))))
   )).
 
 (*

@@ -96,7 +96,7 @@ Now we need a second function
 Once we have f and g, h should be equal to one of them
 Then we need to prove that the two functions satisfy the equivalence
 *)
-Theorem f :
+Theorem f_thm :
   forall (A B : Type), (Prob (A * B)) -> (sigT (fun (a : Prob A) => cond A B a)).
 Proof.
   intros A B p.
@@ -106,7 +106,18 @@ Proof.
   reflexivity.
 Qed.
 
-Theorem g :
+Check f_thm.
+
+Print f_thm.
+
+Definition f (A B : Type) (p : Prob (A * B)) :
+  {a : Prob A & cond A B a}
+  := existT (fun a : Prob A => cond A B a) (fst (split_prob A B p))
+  (existT
+     (fun p0 : Prob (A * B) =>
+      fst (split_prob A B p0) = fst (split_prob A B p)) p eq_refl).
+
+Theorem g_thm :
   forall (A B : Type), (sigT (fun (a : Prob A) => cond A B a)) -> Prob (A * B).
 Proof.
   intros A B p.
@@ -114,10 +125,26 @@ Proof.
   destruct c.
   apply x.
 Qed.
-  
+
+Check g_thm.
+
+Print g_thm.
+
+Definition g (A B : Type) (p : {a : Prob A & cond A B a}) : (Prob (A * B))
+  := let (a, c) := p in let (x, _) := c in x.
+
 (*
 Definition f (A B : Type) (p : Prob (A * B)) : (sigT (fun (a : Prob A) => cond A B a))
   := .
+*)
+
+(*
+Theorem f_of_g :
+  forall (A B : Type) (p : Prob (A * B)), g A B (f A B p) = p.
+Proof.
+  intros A B p.
+
+Check existT.
 *)
 
 (* P(A * B) = sum (a * P(B | a) *)
@@ -127,8 +154,24 @@ Theorem pair_cond_equivalence :
 Proof.
   intros.
   unfold type_equiv.
-  apply existT with (x := f A B).
-  apply (pair (existT (g A B)) (existT (g A B))).
+  apply (existT _ (f A B)).
+  apply pair.
+    - apply existT with (x := g A B).
+      unfold homotopy_ind. unfold homotopy. unfold id.
+      intros a.
+      unfold f.
+      reflexivity.
+    - apply existT with (x := g A B).
+      unfold homotopy_ind. unfold homotopy. unfold id.
+      intros aXp.
+      destruct aXp as [x c].
+      destruct c as [p0 e].
+      unfold g.
+      unfold f.
+      simpl.
+      
+      
+  apply (pair (existT _ (g A B)) (existT _ (g A B))).
   apply (pair (existT with (x := g A B)).
   
 Definition f (A B : Type) (Prob A * B) : Type :=
