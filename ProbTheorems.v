@@ -96,6 +96,29 @@ Now we need a second function
 Once we have f and g, h should be equal to one of them
 Then we need to prove that the two functions satisfy the equivalence
 *)
+Theorem f :
+  forall (A B : Type), (Prob (A * B)) -> (sigT (fun (a : Prob A) => cond A B a)).
+Proof.
+  intros A B p.
+  apply existT with (x := fst (split_prob A B p)).
+  unfold cond.
+  apply existT with (x := p).
+  reflexivity.
+Qed.
+
+Theorem g :
+  forall (A B : Type), (sigT (fun (a : Prob A) => cond A B a)) -> Prob (A * B).
+Proof.
+  intros A B p.
+  destruct p as [a c].
+  destruct c.
+  apply x.
+Qed.
+  
+(*
+Definition f (A B : Type) (p : Prob (A * B)) : (sigT (fun (a : Prob A) => cond A B a))
+  := .
+*)
 
 (* P(A * B) = sum (a * P(B | a) *)
 Theorem pair_cond_equivalence :
@@ -104,12 +127,9 @@ Theorem pair_cond_equivalence :
 Proof.
   intros.
   unfold type_equiv.
-  existT (fun (p : Prob (A * B)) => (
-    existT (fun (pA : (Prob A) => pA))
-  ).
-  exists (f : Prob (A * B) ->
-  {a : Prob A & {p : Prob (A * B) & fst (split_prob A B p) = a}}).
-  exists (fun (p : Prob (A * B)) => (fst (split_prob A B p))).
+  apply existT with (x := f A B).
+  apply (pair (existT (g A B)) (existT (g A B))).
+  apply (pair (existT with (x := g A B)).
   
 Definition f (A B : Type) (Prob A * B) : Type :=
   
