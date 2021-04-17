@@ -82,6 +82,13 @@ Definition indep (A B : Type) : Type :=
   
 Definition cond (A B : Type) (a : Prob A) : Type :=
   sigT (fun (p : Prob (A * B)) => (fst (split_prob A B p) = a)).
+
+Theorem cond_eq :
+  forall (A B : Type) (a1 : Prob A) (a2 : Prob A), cond A B a1 = cond A B a2.
+Proof.
+  intros A B a1 a2.
+  unfold cond.
+  Abort.
   
 (* Why does Prob (A * B) -> sum a * Prob (B | a)
 Prob (B | a) = exists an x : Prob (A * B) constructed with a
@@ -164,9 +171,30 @@ Proof.
     - apply existT with (x := g A B).
       unfold homotopy_ind. unfold homotopy. unfold id.
       intros aXp.
-      destruct aXp as [x c].
-      destruct c as [p0 e].
       unfold g.
+      unfold f.
+      destruct (f A B (g A B aXp)) eqn:E2.
+      destruct aXp as [x1 c1] eqn:E1. simpl.
+      
+      rewrite <- E1.
+      rewrite E2.
+      rewrite E1.
+      unfold cond in c.
+      unfold cond in c0.
+      destruct c eqn:Ec.
+      apply existT.
+      assert (H: x = x0).
+        { 
+      simpl
+      destruct c as [p a2] eqn:E3.
+      destruct (f A B p) eqn:E4.
+      assert (H1: x1 = x).
+        {
+      
+      simpl.
+      unfold f.
+      unfold g.
+      apply existT with (x := f A B).
       unfold f.
       simpl.
       
