@@ -81,8 +81,22 @@ Proof.
   Abort.
 *)
 
+(*
+Definition type_equiv (A B : Type) : Type :=
+  sigT (fun (f : A -> B) => (
+    prod
+    (sigT (fun (h : B -> A) => (homotopy_ind A A (fun (a : A) => (h (f a))) (id A))))
+    (sigT (fun (g : B -> A) => (homotopy_ind B B (fun (b : B) => (f (g b))) (id B))))
+  )).
+*)
+
+Definition based_type_equiv (A B : Type) (f: A -> B) : Type :=
+    prod
+    (sigT (fun (h : B -> A) => (homotopy_ind A A (fun (a : A) => (h (f a))) (id A))))
+    (sigT (fun (g : B -> A) => (homotopy_ind B B (fun (b : B) => (f (g b))) (id B)))).
+
 Definition indep (A B : Type) : Type :=
-  type_equiv (Prob (A * B)) (prod (Prob A) (Prob B)).
+  based_type_equiv (Prob (A * B)) (prod (Prob A) (Prob B)) (split_prob A B).
   
 Definition cond (A B : Type) (a : Prob A) : Type :=
   sigT (fun (p : Prob (A * B)) => (fst (split_prob A B p) = a)).
@@ -173,9 +187,6 @@ Proof.
       reflexivity.
 Qed.
 
-Definition marginal_prob (A B : Type) : Type :=
-  forall (a : Prob A), type_equiv (cond A B a) (Prob B).
-
 Theorem cond_proj_right_thm : forall (A B : Type) (a : Prob A),
   cond A B a -> Prob B.
 Proof.
@@ -191,6 +202,9 @@ Print cond_proj_right_thm.
 Definition cond_proj_right (A B : Type) (a : Prob A) (c : cond A B a) : Prob B :=
   let (x, _) := c in
   let x0 := split_prob A B x in let x1 := proj_right (Prob A) (Prob B) x0 in x1.
+
+Definition marginal_prob (A B : Type) : Type :=
+  forall (a : Prob A), based_type_equiv (cond A B a) (Prob B) (cond_proj_right A B a).
 
 Theorem ind_to_pair_thm : forall (A B : Type) (H: marginal_prob A B),
   Prob A * Prob B -> Prob (A * B).
@@ -225,6 +239,7 @@ Definition ind_to_pair (A B : Type)
   let (h, _) := p0 in
   let (fh, _) := h in let b0 := fh b in let (x0, _) := b0 in x0.
 
+(*
 Theorem marginal_to_ind_thm :
   forall (A B : Type), (marginal_prob A B) -> (indep A B).
 Proof.
@@ -238,50 +253,69 @@ Proof.
   apply pair.
   - apply existT with (x := ind_to_pair A B H).
     intros p.
-    unfold ind_to_pair.
-    simpl.
+    unfold ind_to_pair. unfold split_prob.
+    unfold prob_imp_independent.
+    simpl. Abort.
+*)
+
+Check existT.
+
+Theorem construct_cond_thm : forall (A B : Type) (a : Prob A) (b : Prob B)
+  (fg : Prob A * Prob B -> Prob (A * B))
+  (eg : forall a : Prob A * Prob B, split_prob A B (fg a) = a),
+  (cond A B a).
+Proof.
+  intros.
+  unfold cond.
+  apply (existT _ (fg (pair a b))). 
+  assert (H: fst (split_prob A B (fg (a, b))) = a).
+    { rewrite eg. simpl. reflexivity. }
+  apply H.
+Qed.
+
+Print construct_cond_thm.
+
+Print eq_refl.
+Print eq_ind_r.
+Check eq_ind_r.
+
+
+Definition construct_cond (A B : Type) (a : Prob A) (b : Prob B)
+  (fg : Prob A * Prob B -> Prob (A * B))
+  (eg : forall a : Prob A * Prob B, split_prob A B (fg a) = a) : (cond A B a) :=
+existT (fun p : Prob (A * B) => fst (split_prob A B p) = a) 
+  (fg (a, b))
+  (let H : fst (split_prob A B (fg (a, b))) = a :=
+     eq_ind_r (fun p : Prob A * Prob B => fst p = a) eq_refl (eg (a, b)) in
+   H).
 
 Theorem ind_to_marginal_thm :
   forall (A B : Type), (indep A B) -> (marginal_prob A B).
 Proof.
   intros A B i.
-  destruct i.
+  destruct i as [h g].
   unfold marginal_prob.
   intros a.
-  unfold type_equiv.
-  destruct p as [h g].
+  unfold based_type_equiv.
   unfold homotopy_ind in h. unfold homotopy in h. unfold id in h.
   unfold homotopy_ind in g. unfold homotopy in g. unfold id in g.
   destruct h as [fh eh].
   destruct g as [fg eg].
   unfold homotopy_ind. unfold homotopy. unfold id.
-  apply existT with (x := cond_proj_right A B a).
   apply pair.
-  - unfold homotopy_ind. unfold homotopy. unfold id. Abort.
+  - unfold homotopy_ind. unfold homotopy. unfold id.
+    apply existT with (x := fun (b : Prob B) => construct_cond_thm A B a b fh eh fg eg).
+    intros c. simpl.
+    apply existT with (x := fun (b : Prob B) =>
+      existT (fg (pair a b))).
     (*apply existT with (x := fun (b : Prob B) => fh (pair a b)).*)
-    
-Theorem construct_cond : forall (A B : Type) (a : Prob A) (b : Prob B)
-  (x : Prob (A * B) -> Prob A * Prob B)
-  (fh : Prob A * Prob B -> Prob (A * B))
-  (eh : forall a : Prob (A * B), fh (x a) = a)
-  (fg : Prob A * Prob B -> Prob (A * B))
-  (eg : forall a : Prob A * Prob B, x (fg a) = a),
-  (cond A B a).
-Proof.
-  intros.
-  unfold cond.
-  apply existT with (x := fg (pair a b)).
-  apply x.
-  
-
-    
-Definition ind_to_marginal (A B : Type) : Type :=
-  
 
 Theorem ind_equivalence :
   forall (A B: Type), type_equiv (indep A B) (marginal_prob A B).
 Proof.
-  Abort.
+  intros A B.
+  unfold type_equiv.
+  
 
   
   
